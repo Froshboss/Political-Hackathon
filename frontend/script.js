@@ -36,12 +36,19 @@ const codes = {
     info: ['WTH-001', 'ARR-001', 'OK-001', 'SUP-001', 'TRN-001']
 };
 
+const severityCodes = {
+    critical: 'FRD-001',
+    warning: 'INC-001',
+    info: 'OK-001'
+};
+
 // State
 let feedEntries = [];
 let currentFilter = 'all';
 let criticalCount = 7;
 let warningCount = 12;
 let infoCount = 24;
+const seenReportIds = new Set();
 
 // DOM Elements
 const clockEl = document.getElementById('clock');
@@ -129,18 +136,52 @@ function renderEntry(entry) {
     const div = document.createElement('div');
     div.className = `feed-entry ${entry.severity} new-entry`;
     div.dataset.severity = entry.severity;
-    div.innerHTML = `
-        <div class="entry-header">
-            <div class="entry-meta">
-                <span class="entry-time">${formatRelativeTime(entry.timestamp)}</span>
-                <span class="entry-location">${entry.location}</span>
-            </div>
-            <span class="entry-code ${entry.severity}">${entry.code}</span>
-        </div>
-        <div class="entry-message">${entry.message}</div>
-    `;
+
+    const header = document.createElement('div');
+    header.className = 'entry-header';
+
+    const meta = document.createElement('div');
+    meta.className = 'entry-meta';
+
+    const time = document.createElement('span');
+    time.className = 'entry-time';
+    time.textContent = formatRelativeTime(entry.timestamp);
+
+    const location = document.createElement('span');
+    location.className = 'entry-location';
+    location.textContent = entry.location;
+
+    const code = document.createElement('span');
+    code.className = `entry-code ${entry.severity}`;
+    code.textContent = entry.code;
+
+    const message = document.createElement('div');
+    message.className = 'entry-message';
+    message.textContent = entry.message;
+
+    meta.append(time, location);
+    header.append(meta, code);
+    div.append(header, message);
+
     setTimeout(() => div.classList.remove('new-entry'), 3000);
     return div;
+}
+
+function reportToEntry(report) {
+    return {
+        id: report.id,
+        timestamp: new Date(report.receivedAt),
+        location: `Station ${report.stationId}`,
+        message: `${report.incident} | Registered: ${report.registered.toLocaleString()} | Cast: ${report.cast.toLocaleString()} | Status: ${report.status}`,
+        severity: report.severity,
+        code: severityCodes[report.severity] || 'SMS-001'
+    };
+}
+
+function trimFeedDom() {
+    while (feedListEl.children.length > 50) {
+        feedListEl.removeChild(feedListEl.lastChild);
+    }
 }
 
 // Add entry to feed
@@ -169,8 +210,38 @@ function addEntry() {
     // Render
     const entryEl = renderEntry(entry);
     feedListEl.insertBefore(entryEl, feedListEl.firstChild);
+    trimFeedDom();
 
     // Apply filter
+    applyFilter();
+}
+
+function addIncomingReport(report) {
+    if (seenReportIds.has(report.id)) return;
+    seenReportIds.add(report.id);
+
+    const entry = reportToEntry(report);
+    feedEntries.unshift(entry);
+
+    if (entry.severity === 'critical') {
+        criticalCount++;
+        incidentCountEl.dataset.target = criticalCount;
+        animateValue(incidentCountEl, criticalCount - 1, criticalCount, 500);
+        document.getElementById('statCritical').textContent = criticalCount;
+        triggerAlert();
+    } else if (entry.severity === 'warning') {
+        warningCount++;
+        document.getElementById('statWarning').textContent = warningCount;
+    } else {
+        infoCount++;
+        document.getElementById('statInfo').textContent = infoCount;
+    }
+
+    if (feedEntries.length > 50) feedEntries.pop();
+
+    const entryEl = renderEntry(entry);
+    feedListEl.insertBefore(entryEl, feedListEl.firstChild);
+    trimFeedDom();
     applyFilter();
 }
 
@@ -225,3 +296,11 @@ initFeed();
 
 // Add new entries periodically
 setInterval(addEntry, Math.random() * 3000 + 5000);
+
+if (window.io) {
+    const socket = io();
+    socket.on('sms:report', addIncomingReport);
+    socket.on('reports:snapshot', reports => {
+        reports.slice().reverse().forEach(addIncomingReport);
+    });
+}

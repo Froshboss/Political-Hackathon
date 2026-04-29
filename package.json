@@ -1,0 +1,17 @@
+{
+  "name": "election-integrity-dashboard",
+  "version": "1.0.0",
+  "description": "Election integrity dashboard with Africa's Talking SMS webhook ingestion.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "africastalking": "^0.7.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.1.0",
+    "socket.io": "^4.8.1"
+  }
+}
