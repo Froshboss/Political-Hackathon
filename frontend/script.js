@@ -58,6 +58,8 @@ const alertBanner = document.getElementById('alertBanner');
 const incidentsCard = document.getElementById('incidentsCard');
 const incidentCountEl = document.getElementById('incidentCount');
 const filterBtns = document.querySelectorAll('.filter-btn');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const sidebar = document.querySelector('.sidebar');
 
 // Clock
 function updateClock() {
@@ -266,6 +268,19 @@ filterBtns.forEach(btn => {
         applyFilter();
     });
 });
+
+// Mobile Menu Toggle
+if (mobileMenuBtn && sidebar) {
+    mobileMenuBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+            sidebar.classList.remove('open');
+        }
+    });
+}
 
 // Trigger alert
 function triggerAlert() {

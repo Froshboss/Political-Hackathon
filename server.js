@@ -138,6 +138,41 @@ app.get('/reports', async (req, res) => {
     res.json({ reports });
 });
 
+const mockObservers = [
+    { id: 'obs1', name: 'Aisha Bello', phone: '+2348012345678', location: 'Lagos', lastReport: new Date(Date.now() - 5 * 60 * 1000).toISOString(), reliabilityScore: 95, status: 'active' },
+    { id: 'obs2', name: 'Chidi Okoro', phone: '+2348023456789', location: 'Abuja', lastReport: new Date(Date.now() - 40 * 60 * 1000).toISOString(), reliabilityScore: 80, status: 'idle' },
+    { id: 'obs3', name: 'Fatima Musa', phone: '+2348034567890', location: 'Kano', lastReport: new Date(Date.now() - 120 * 60 * 1000).toISOString(), reliabilityScore: 70, status: 'offline' },
+    { id: 'obs4', name: 'David Eka', phone: '+2348045678901', location: 'Rivers', lastReport: new Date(Date.now() - 10 * 60 * 1000).toISOString(), reliabilityScore: 90, status: 'active' },
+    { id: 'obs5', name: 'Grace Ade', phone: '+2348056789012', location: 'Oyo', lastReport: new Date(Date.now() - 70 * 60 * 1000).toISOString(), reliabilityScore: 65, status: 'offline' },
+];
+
+app.get('/observers', (req, res) => {
+    // In a real app, you'd fetch this from a database.
+    // For hackathon, we'll return mock data and update status based on lastReport time.
+    const updatedObservers = mockObservers.map(obs => {
+        const lastReportTime = new Date(obs.lastReport).getTime();
+        const now = Date.now();
+        const diffMinutes = (now - lastReportTime) / (1000 * 60);
+
+        let status = 'offline';
+        if (diffMinutes < 30) {
+            status = 'active';
+        } else if (diffMinutes < 60) { // Idle if no report in last 30-60 mins
+            status = 'idle';
+        }
+        return { ...obs, status };
+    });
+    res.json({ observers: updatedObservers });
+});
+
+app.post('/broadcast-sms', async (req, res) => {
+    const { message, recipients } = req.body; // recipients could be an array of phone numbers or a region
+    // Implement Africa's Talking Bulk SMS API call here
+    console.log(`Broadcasting SMS: "${message}" to ${recipients.join(', ')}`);
+    // await sms.send({ to: recipients, message: message });
+    res.json({ success: true, message: 'Broadcast initiated (mocked)' });
+});
+
 app.post('/webhook', async (req, res, next) => {
     const { sender, text } = getIncomingSmsPayload(req.body);
 

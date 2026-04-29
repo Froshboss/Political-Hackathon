@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectionGuard - Incident Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <!-- Sidebar content from index.html -->
+    </aside>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                </button>
+                <h1 class="header-title">Incident Reports</h1>
+            </div>
+            <div class="header-right">
+                <div class="clock" id="clock">--:--:--</div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">Live</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="incident-page-grid">
+            <div class="incident-filters">
+                <!-- Filter buttons here -->
+            </div>
+            <div class="incident-timeline" id="incidentTimeline"></div>
+            <div class="incident-details-panel" id="incidentDetailsPanel"></div>
+        </div>
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="incidents.js"></script> <!-- New JS file for incident logic -->
+</body>
+</html>
